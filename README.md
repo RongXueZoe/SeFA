@@ -1,6 +1,6 @@
 # SeFA-Policy: Fast and Accurate Visuomotor Policy Learning with Selective Flow Alignment
 
-[[Project page]](https://github.com/RongXueZoe/SeFAPolicy-homepage/)
+[[Project page]](https://rongxuezoe.github.io/SeFAPolicy-homepage/)
 [[Paper]](https://?/#paper)
 
 [Rong Xue](http://rongxuezoe.github.io/)<sup>1*</sup>,

@@ -1,0 +1,209 @@
+_target_: sefa_policy.workspace.train_diffusion_unet_hybrid_workspace_metaworld.TrainDiffusionUnetHybridWorkspace
+checkpoint:
+  save_last_ckpt: true
+  save_last_snapshot: false
+  topk:
+    format_str: epoch={epoch:04d}-test_mean_success_rate={test_mean_success_rate:.3f}.ckpt
+    k: 5
+    mode: max
+    monitor_key: test_mean_success_rate
+dataloader:
+  batch_size: 64
+  num_workers: 8
+  persistent_workers: false
+  pin_memory: true
+  shuffle: true
+dataset_obs_steps: 2
+ema:
+  _target_: sefa_policy.model.diffusion.ema_model.EMAModel
+  inv_gamma: 1.0
+  max_value: 0.9999
+  min_value: 0.0
+  power: 0.75
+  update_after_step: 0
+exp_name: default
+horizon: 16
+keypoint_visible_rate: 1.0
+logging:
+  group: null
+  id: null
+  mode: online
+  name: ${now:%Y.%m.%d}-${now:%H.%M.%S}_train_diffusion_unet_hybrid_mt50_${task.env_name}
+  project: diffusion_policy_metaworld
+  resume: true
+  tags:
+  - train_diffusion_unet_hybrid
+  - mt50
+  - default_action
+  - ${task.env_name}
+multi_run:
+  run_dir: data/outputs-metaworld/${now:%Y.%m.%d}/${now:%H.%M.%S}_train_diffusion_unet_hybrid_mt50_${task.env_name}
+  wandb_name_base: ${now:%Y.%m.%d}-${now:%H.%M.%S}_train_diffusion_unet_hybrid_mt50_${task.env_name}
+use_wandb: true
+n_action_steps: 8
+n_latency_steps: 0
+n_obs_steps: 2
+name: train_diffusion_unet_hybrid_mt50
+obs_as_global_cond: true
+optimizer:
+  _target_: torch.optim.AdamW
+  betas:
+  - 0.95
+  - 0.999
+  eps: 1.0e-08
+  lr: 0.0001
+  weight_decay: 1.0e-06
+past_action_visible: false
+agent_pos_shape: 4
+camera_id: 1
+policy:
+  _target_: sefa_policy.policy.diffusion_unet_hybrid_image_metaworld_policy.DiffusionUnetHybridImageMetaworldPolicy
+  cond_predict_scale: true
+  crop_shape:
+  - 84
+  - 84
+  diffusion_step_embed_dim: 128
+  down_dims:
+  - 512
+  - 1024
+  - 2048
+  eval_fixed_crop: true
+  horizon: 16
+  kernel_size: 5
+  n_action_steps: 8
+  n_groups: 8
+  n_obs_steps: 2
+  noise_scheduler:
+    _target_: diffusers.schedulers.scheduling_ddpm.DDPMScheduler
+    beta_end: 0.02
+    beta_schedule: squaredcos_cap_v2
+    beta_start: 0.0001
+    clip_sample: true
+    num_train_timesteps: 100
+    prediction_type: epsilon
+    variance_type: fixed_small
+  num_inference_steps: 100
+  obs_as_global_cond: true
+  obs_encoder_group_norm: true
+  shape_meta: ${shape_meta}
+shape_meta:
+  action:
+    shape:
+    - 4
+  obs:
+    agent_pos:
+      shape:
+      - ${agent_pos_shape}
+      type: low_dim
+    image:
+      shape:
+      - 3
+      - 128
+      - 128
+      type: rgb
+task:
+  env_name: null  # [disassemble-v2, pick-out-of-hole-v2, stick-pull-v2]
+  train_dataset:
+    _target_: sefa_policy.dataset.mt50_image_dataset.MT50ImageDataset
+    horizon: 16
+    env_name: ${task.env_name}
+    # max_train_episodes: 90
+    pad_after: 7
+    pad_before: 1
+    seed: 42
+    val_ratio: 0.02
+    base_path: data/mt50
+    buffer_size: 5000
+    video_shape:
+    - 480
+    - 480
+    fps: 30.0
+    repeat_times: 10
+    split: train
+  val_dataset:
+    _target_: sefa_policy.dataset.mt50_image_dataset.MT50ImageDataset
+    horizon: 16
+    env_name: ${task.env_name}
+    # max_train_episodes: 90
+    pad_after: 7
+    pad_before: 1
+    seed: 42
+    val_ratio: 0.02
+    base_path: data/mt50
+    buffer_size: 5000
+    video_shape:
+    - 480
+    - 480
+    fps: 30.0
+    split: val
+  load_from_pkl: true
+  env_runner:
+    _target_: sefa_policy.env_runner.mt50_image_runner_loop.MT50ImageLoopRunner
+    env_name: ${task.env_name}
+    camera_id: ${camera_id}
+    fps: 30
+    legacy_test: true
+    max_steps: 300
+    n_action_steps: 8
+    n_envs: null
+    n_obs_steps: 2
+    n_test: 5
+    n_test_vis: 1
+    n_train: 1
+    n_train_vis: 1
+    past_action: false
+    test_start_seed: 100000
+    train_start_seed: 0
+  image_shape:
+  - 3
+  - 480
+  - 480
+  name: mt50_image
+  shape_meta:
+    action:
+      shape:
+      - 4
+    obs:
+      agent_pos:
+        shape:
+        - 49
+        type: low_dim
+      image:
+        shape:
+        - 3
+        - 480
+        - 480
+        type: rgb
+task_name: mt50_image
+training:
+  checkpoint_every: 50
+  debug: false
+  device: cuda:0
+  gradient_accumulate_every: 1
+  lr_scheduler: cosine
+  lr_warmup_steps: 500
+  max_train_steps: null
+  max_val_steps: null
+  num_epochs: 1000
+  resume: true
+  rollout_every: 50
+  sample_every: 50
+  seed: 42
+  tqdm_interval_sec: 1.0
+  use_ema: true
+  val_every: 50
+val_dataloader:
+  batch_size: 64
+  num_workers: 8
+  persistent_workers: false
+  pin_memory: true
+  shuffle: false
+
+hydra:
+  job:
+    override_dirname: ${name}
+  run:
+    dir: data/outputs-metaworld/${now:%Y.%m.%d}/${now:%H.%M.%S}_train_diffusion_unet_hybrid_mt50_${task.env_name}
+  sweep:
+    dir: data/outputs-metaworld/${now:%Y.%m.%d}/${now:%H.%M.%S}_train_diffusion_unet_hybrid_mt50_${task.env_name}
+    subdir: ${hydra.job.num}
